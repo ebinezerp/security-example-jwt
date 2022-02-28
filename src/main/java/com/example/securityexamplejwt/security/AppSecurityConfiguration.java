@@ -20,16 +20,23 @@ public class AppSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
 
-    public AppSecurityConfiguration(PasswordEncoder passwordEncoder){
+    public AppSecurityConfiguration(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
 
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .antMatchers("/","index","/css/*","/js/*").permitAll()
-                .antMatchers("/api/students").hasRole(STUDENT.name())
+
+        http.csrf()
+                .disable()
+                .authorizeRequests()
+                .antMatchers("/", "index", "/css/*", "/js/*")
+                .permitAll()
+                .antMatchers("/management/**")
+                .hasRole(ADMIN.name())
+                .antMatchers("/api/**")
+                .hasRole(STUDENT.name())
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -42,16 +49,24 @@ public class AppSecurityConfiguration extends WebSecurityConfigurerAdapter {
         UserDetails annaUser = User.builder()
                 .username("AnnaSmith")
                 .password(passwordEncoder.encode("password"))
-                .roles(STUDENT.name()).build();
+                .roles(STUDENT.name())
+                .build();
 
         UserDetails lindaUser = User.builder()
                 .username("linda")
                 .password(passwordEncoder.encode("password"))
-                .roles(ADMIN.name()).build();
+                .roles(ADMIN.name())
+                .build();
+
+        UserDetails tomUser = User.builder()
+                .username("tom")
+                .password(passwordEncoder.encode("password"))
+                .roles(ADMIN_TRAINEE.name())
+                .build();
 
 
         return new InMemoryUserDetailsManager(
-                annaUser,lindaUser
+                annaUser, lindaUser, tomUser
         );
     }
 }
